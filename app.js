@@ -1,4 +1,6 @@
-require('dotenv').config()
+const path = require('path')
+require('dotenv').config({path: path.join(__dirname, '/.env')})
+const fs = require('fs')
 const Twitter = require('twitter')
 const axios = require('axios')
 const low = require('lowdb')
@@ -17,6 +19,7 @@ const client = new Twitter({
 })
 
 const checkTweets = async () => {
+  fs.appendFileSync('log.txt', `----------------------`, 'utf8')
   try {
    const response = await client.get('search/tweets', { q: 'from:@BNODesk exclude:replies exclude:retweets'})
 
@@ -24,6 +27,7 @@ const checkTweets = async () => {
      const exists = db.get('tweets').find({ id: tweet.id }).value()
 
      if (!exists) {
+       fs.appendFileSync('log.txt', `New tweet found!\n${JSON.stringify(tweet.text)}\n`, 'utf8')
        db.get('tweets').push({ 'id': tweet.id }).write()
 
        await axios.request({
@@ -41,8 +45,11 @@ const checkTweets = async () => {
    }
 
   } catch (e) {
+    fs.appendFileSync('log.txt', `Error: ${JSON.stringify(e)}\n`, 'utf8')
     console.log(e)
   }
+
+  fs.appendFileSync('log.txt', `----------------------`, 'utf8')
 } 
 
 checkTweets()
