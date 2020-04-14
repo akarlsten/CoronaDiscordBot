@@ -19,18 +19,16 @@ const client = new Twitter({
 })
 
 const checkTweets = async () => {
-  fs.appendFileSync('log.txt', `----------------------`, 'utf8')
   try {
    const response = await client.get('search/tweets', { q: 'from:@BNODesk exclude:replies exclude:retweets'})
 
    for (const tweet of response.statuses) {
-     const exists = db.get('tweets').find({ id: tweet.id }).value()
+     const exists = db.get('tweets').find({ id: tweet.id_str }).value()
 
      if (!exists) {
-       fs.appendFileSync('log.txt', `New tweet found!\n${JSON.stringify(tweet.text)}\n`, 'utf8')
-       db.get('tweets').push({ 'id': tweet.id }).write()
+       db.get('tweets').push({ id: tweet.id_str }).write()
 
-       await axios.request({
+        await axios.request({
          url: process.env.DISCORD_WEBHOOK,
          method: 'post',
          headers: {
@@ -48,8 +46,6 @@ const checkTweets = async () => {
     fs.appendFileSync('log.txt', `Error: ${JSON.stringify(e)}\n`, 'utf8')
     console.log(e)
   }
-
-  fs.appendFileSync('log.txt', `----------------------`, 'utf8')
 } 
 
 checkTweets()
